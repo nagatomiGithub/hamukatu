@@ -12,54 +12,33 @@ import javax.servlet.http.HttpServletResponse;
 import beans.User;
 import dao.Dao;
 
-//SampleBBS/EntryUserServletにアクセスすると動作
 @WebServlet("/EntryUserServlet")
 public class EntryUserServlet extends HttpServlet {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+        
+        String id = request.getParameter("id");
+        String name = request.getParameter("name");
+        String password1 = request.getParameter("password1");
+        String password2 = request.getParameter("password2");
 
-    public EntryUserServlet() {
-        super();
+        Dao dao = new Dao();
+
+        if(id != null && !id.isBlank() 
+                && dao.getUserById(id) == null 
+                && password1 != null && password1.equals(password2) 
+                && !password1.isBlank()) {
+            
+            User userToEntry = new User(id, password1, name);
+            dao.insertUser(userToEntry); // Dao側のメソッドを呼び出す
+            
+            RequestDispatcher dispatcher = request.getRequestDispatcher("./WEB-INF/jsp/login.jsp");
+            dispatcher.forward(request, response);
+        } else {
+            RequestDispatcher dispatcher = request.getRequestDispatcher("./WEB-INF/jsp/entryUser.jsp");
+            dispatcher.forward(request, response);
+        }
     }
-
-
-    //POSTアクセス時に動作．データ登録系の処理なので，POSTのみ受け付け．
-    //
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		//requestのデータの文字コードをUTF-8に設定
-		request.setCharacterEncoding("UTF-8");
-		
-		//requestから，id,name,password1,password2の名前のデータを取得(entryUser.jspを参照)
-		String id = request.getParameter("id");
-		String name = request.getParameter("name");
-		String password1 = request.getParameter("password1");
-		String password2 = request.getParameter("password2");
-
-		//DBアクセスのためのクラスをインスタンス化
-		Dao dao = new Dao();
-
-		//ユーザ情報が問題ないかチェック
-		if(		!id.isBlank() //idが空もしくは空白のみではない
-				&& dao.getUserById(id)==null //idが使用されていない
-				&& password1.equals(password2) //確認用パスワードが一致
-				&& !password1.isBlank() //passwordが空もしくは空白のみではない
-				) {
-			
-			//登録用のユーザオブジェクトを作成．Userはbeansパッケージに定義してある．
-			User userToEntry = new User(id, password1, name);
-			//ユーザをDBに登録
-			dao.insertUser(userToEntry);
-			//ログインページ./WEB-INF/jsp/login.jspに移動
-			RequestDispatcher dispatcher = request.getRequestDispatcher("./WEB-INF/jsp/login.jsp");
-			dispatcher.forward(request, response);
-		}
-		else {//ユーザ情報に問題があった場合
-			//ユーザ登録ページに戻す．
-			RequestDispatcher dispatcher = request.getRequestDispatcher("./WEB-INF/jsp/entryUser.jsp");
-			dispatcher.forward(request, response);
-		}
-
-
-	}
-
 }

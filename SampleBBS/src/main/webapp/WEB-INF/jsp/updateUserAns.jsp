@@ -1,28 +1,38 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
-<!-- beansのクラスが使えるようにインポート -->
-<%@ page import ="beans.*" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%-- beans.Userクラスを使えるようにインポート --%>
+<%@ page import="beans.User" %>
+
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Login page</title>
+<title>ユーザ情報更新</title>
 </head>
 <body>
-<label>Sample BBS ユーザ情報アップデート</label>
-	<%//requestからuserを取得 %>
-	<% User user = (User)request.getAttribute("user"); %>
-
-	<!--  EntryUserServletにデータを送信するformを宣言する. 登録処理なので，methodはpostを指定．
-	後はentryArticle.jspと同様なので，そちらのコメントを参考にするとよい．-->
-	<form action="./UpdateUserServletAns" method="post">
-		<p><label>ログインID：<%=user.getId()%></label></p><!--userIdを埋め込み-->
-		<p><label>名前：<input type="text" name="name" size="40" maxlength="20" value=<%=user.getName()%>></label></p>
-		<!-- typeをパスワードにすると，文字が目隠しされる．他にも，数値や日付，メールアドレスなどを入力するtypeが指定できるので，調べてみるとよい．-->
-		<p><label>現在のパスワード：<input type="password" name="currentPassword" size="40" maxlength="20"></label></p>
-		<p><label>新しいパスワード：<input type="password" name="newPassword1" size="40" maxlength="20"></label></p>
-		<p><label>確認用パスワード：<input type="password" name="newPassword2" size="40" maxlength="20"></label></p>
-		<p><input type="submit" value="更新"></p>
-	</form>
+    <h2>Sample BBS ユーザ情報アップデート</h2>
+    
+    <%
+        // requestからuserを取得
+        User user = (User)request.getAttribute("user");
+        
+        // userがnullの場合の安全策
+        if (user != null) {
+    %>
+        <form action="./UpdateUserServletAns" method="post">
+            <p><label>ログインID：<%= user.getId() %></label></p>
+            <p><label>名前：<input type="text" name="name" size="40" maxlength="20" value="<%= user.getName() %>"></label></p>
+            <p><label>現在のパスワード：<input type="password" name="currentPassword" size="40" maxlength="20" required></label></p>
+            <p><label>新しいパスワード：<input type="password" name="newPassword1" size="40" maxlength="20"></label></p>
+            <p><label>確認用パスワード：<input type="password" name="newPassword2" size="40" maxlength="20"></label></p>
+            <p><input type="submit" value="更新"></p>
+        </form>
+    <% 
+        } else { 
+    %>
+        <p style="color:red;">ユーザ情報の取得に失敗しました。再度ログインしてください。</p>
+        <a href="./LoginPageServlet">ログイン画面へ</a>
+    <% } %>
+    
+    <p><a href="./ArticleListServlet">記事一覧へ戻る</a></p>
 </body>
 </html>
