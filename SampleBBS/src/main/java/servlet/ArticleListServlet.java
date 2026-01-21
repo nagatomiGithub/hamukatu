@@ -19,8 +19,9 @@ public class ArticleListServlet extends HttpServlet {
         
         String keyword = request.getParameter("searchKeyword");
         boolean isTrend = "true".equals(request.getParameter("trend"));
-        
+
         Dao dao = new Dao();
+        // keywordとisTrendの両方を渡すことで赤線を消します
         List<Article> articleList = dao.getArticleList(keyword, isTrend);
 
         request.setAttribute("articleList", articleList);
