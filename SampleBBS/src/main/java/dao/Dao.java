@@ -8,12 +8,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import beans.Article;
+import beans.Comment;
 import beans.MyData;
 import beans.User;
 
 public class Dao extends DriverAccessor {
 
-    // --- 1. 記事一覧（検索・トレンド・新着対応） ---
+    // =====================================================
+    // 1. 記事一覧（検索・トレンド・新着）
+    // =====================================================
     public List<Article> getArticleList(String keyword, boolean isTrend) {
         Connection connection = this.createConnection();
         List<Article> list = new ArrayList<>();
@@ -42,33 +45,34 @@ public class Dao extends DriverAccessor {
                         rs.getInt("id"),
                         rs.getString("title"),
                         rs.getString("body"),
-                        rs.getString("editor_id"),   // ★修正点
+                        rs.getString("editor_id"),
                         rs.getInt("fav_count"),
+                        rs.getInt("dislike_count"),
                         rs.getTimestamp("entry_datetime")
                 ));
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
             this.closeConnection(connection);
         }
-
         return list;
     }
 
-    // --- 2. 記事投稿 ---
+    // =====================================================
+    // 2. 記事投稿
+    // =====================================================
     public void insertArticle(Article article) {
         Connection connection = this.createConnection();
-
         try {
-            String sql = "INSERT INTO article (title, body, editor_id) VALUES (?, ?, ?)"; // ★修正点
-            PreparedStatement stmt = connection.prepareStatement(sql);
+            PreparedStatement stmt =
+                connection.prepareStatement(
+                    "INSERT INTO article (title, body, editor_id) VALUES (?, ?, ?)"
+                );
             stmt.setString(1, article.getTitle());
             stmt.setString(2, article.getBody());
             stmt.setString(3, article.getEditorId());
             stmt.executeUpdate();
-
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
@@ -76,16 +80,16 @@ public class Dao extends DriverAccessor {
         }
     }
 
-    // --- 3. 記事削除 ---
+    // =====================================================
+    // 3. 記事削除
+    // =====================================================
     public void deleteArticle(int id) {
         Connection connection = this.createConnection();
-
         try {
             PreparedStatement stmt =
-                    connection.prepareStatement("DELETE FROM article WHERE id = ?");
+                connection.prepareStatement("DELETE FROM article WHERE id = ?");
             stmt.setInt(1, id);
             stmt.executeUpdate();
-
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
@@ -93,40 +97,38 @@ public class Dao extends DriverAccessor {
         }
     }
 
-    // --- 4. いいね機能 ---
+    // =====================================================
+    // 4. いいね
+    // =====================================================
     public void addFavorite(int articleId, String userId) {
         Connection connection = this.createConnection();
-
         try {
-            // 二重いいね防止
-            String checkSql =
-                    "SELECT * FROM favorites WHERE article_id = ? AND user_id = ?";
-            PreparedStatement checkStmt = connection.prepareStatement(checkSql);
-            checkStmt.setInt(1, articleId);
-            checkStmt.setString(2, userId);
-
-            if (checkStmt.executeQuery().next()) return;
+            PreparedStatement check =
+                connection.prepareStatement(
+                    "SELECT * FROM favorites WHERE article_id = ? AND user_id = ?"
+                );
+            check.setInt(1, articleId);
+            check.setString(2, userId);
+            if (check.executeQuery().next()) return;
 
             connection.setAutoCommit(false);
 
-            // ★SQL安全化
-            PreparedStatement updStmt =
-                    connection.prepareStatement(
-                            "UPDATE article SET fav_count = fav_count + 1 WHERE id = ?"
-                    );
-            updStmt.setInt(1, articleId);
-            updStmt.executeUpdate();
+            PreparedStatement upd =
+                connection.prepareStatement(
+                    "UPDATE article SET fav_count = fav_count + 1 WHERE id = ?"
+                );
+            upd.setInt(1, articleId);
+            upd.executeUpdate();
 
-            PreparedStatement insStmt =
-                    connection.prepareStatement(
-                            "INSERT INTO favorites (article_id, user_id) VALUES (?, ?)"
-                    );
-            insStmt.setInt(1, articleId);
-            insStmt.setString(2, userId);
-            insStmt.executeUpdate();
+            PreparedStatement ins =
+                connection.prepareStatement(
+                    "INSERT INTO favorites (article_id, user_id) VALUES (?, ?)"
+                );
+            ins.setInt(1, articleId);
+            ins.setString(2, userId);
+            ins.executeUpdate();
 
             connection.commit();
-
         } catch (SQLException e) {
             try { connection.rollback(); } catch (SQLException ex) {}
             e.printStackTrace();
@@ -135,20 +137,60 @@ public class Dao extends DriverAccessor {
         }
     }
 
-    // --- 5. コメント機能 ---
+    // =====================================================
+    // 5. 低評価
+    // =====================================================
+    public void addDislike(int articleId, String userId) {
+        Connection connection = this.createConnection();
+        try {
+            PreparedStatement check =
+                connection.prepareStatement(
+                    "SELECT * FROM dislikes WHERE article_id = ? AND user_id = ?"
+                );
+            check.setInt(1, articleId);
+            check.setString(2, userId);
+            if (check.executeQuery().next()) return;
+
+            connection.setAutoCommit(false);
+
+            PreparedStatement upd =
+                connection.prepareStatement(
+                    "UPDATE article SET dislike_count = dislike_count + 1 WHERE id = ?"
+                );
+            upd.setInt(1, articleId);
+            upd.executeUpdate();
+
+            PreparedStatement ins =
+                connection.prepareStatement(
+                    "INSERT INTO dislikes (article_id, user_id) VALUES (?, ?)"
+                );
+            ins.setInt(1, articleId);
+            ins.setString(2, userId);
+            ins.executeUpdate();
+
+            connection.commit();
+        } catch (SQLException e) {
+            try { connection.rollback(); } catch (SQLException ex) {}
+            e.printStackTrace();
+        } finally {
+            this.closeConnection(connection);
+        }
+    }
+
+    // =====================================================
+    // 6. コメント追加
+    // =====================================================
     public void insertComment(int articleId, String userId, String body) {
         Connection connection = this.createConnection();
-
         try {
             PreparedStatement stmt =
-                    connection.prepareStatement(
-                            "INSERT INTO comment (article_id, user_id, body) VALUES (?, ?, ?)"
-                    );
+                connection.prepareStatement(
+                    "INSERT INTO comment (article_id, user_id, body) VALUES (?, ?, ?)"
+                );
             stmt.setInt(1, articleId);
             stmt.setString(2, userId);
             stmt.setString(3, body);
             stmt.executeUpdate();
-
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
@@ -156,41 +198,65 @@ public class Dao extends DriverAccessor {
         }
     }
 
-    public List<String> getCommentsByArticleId(int articleId) {
+    // =====================================================
+    // 7. コメント取得（投稿者・時刻つき）
+    // =====================================================
+    public List<Comment> getCommentsByArticleId(int articleId) {
         Connection connection = this.createConnection();
-        List<String> comments = new ArrayList<>();
-
+        List<Comment> list = new ArrayList<>();
         try {
             PreparedStatement stmt =
-                    connection.prepareStatement(
-                            "SELECT body FROM comment WHERE article_id = ? ORDER BY entry_datetime ASC"
-                    );
+                connection.prepareStatement(
+                    "SELECT id, user_id, body, entry_datetime FROM comment WHERE article_id = ? ORDER BY entry_datetime ASC"
+                );
             stmt.setInt(1, articleId);
             ResultSet rs = stmt.executeQuery();
-
             while (rs.next()) {
-                comments.add(rs.getString("body"));
+                list.add(new Comment(
+                        rs.getInt("id"),
+                        rs.getString("user_id"),
+                        rs.getString("body"),
+                        rs.getTimestamp("entry_datetime")
+                ));
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
             this.closeConnection(connection);
         }
-
-        return comments;
+        return list;
     }
 
-    // --- 6. ユーザー管理 ---
-    public User getUserById(String id) {
+    // =====================================================
+    // 8. コメント削除（本人のみ）
+    // =====================================================
+    public void deleteComment(int commentId, String userId) {
         Connection connection = this.createConnection();
-
         try {
             PreparedStatement stmt =
-                    connection.prepareStatement("SELECT * FROM user WHERE id = ?");
+                connection.prepareStatement(
+                    "DELETE FROM comment WHERE id = ? AND user_id = ?"
+                );
+            stmt.setInt(1, commentId);
+            stmt.setString(2, userId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            this.closeConnection(connection);
+        }
+    }
+
+    // =====================================================
+    // 9. ユーザー管理
+    // =====================================================
+    public User getUserById(String id) {
+        Connection connection = this.createConnection();
+        try {
+            PreparedStatement stmt =
+                connection.prepareStatement("SELECT * FROM user WHERE id = ?");
             stmt.setString(1, id);
             ResultSet rs = stmt.executeQuery();
-
             if (rs.next()) {
                 return new User(
                         rs.getString("id"),
@@ -198,29 +264,25 @@ public class Dao extends DriverAccessor {
                         rs.getString("name")
                 );
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
             this.closeConnection(connection);
         }
-
         return null;
     }
 
     public void insertUser(User user) {
         Connection connection = this.createConnection();
-
         try {
             PreparedStatement stmt =
-                    connection.prepareStatement(
-                            "INSERT INTO user (id, password, name) VALUES (?, ?, ?)"
-                    );
+                connection.prepareStatement(
+                    "INSERT INTO user (id, password, name) VALUES (?, ?, ?)"
+                );
             stmt.setString(1, user.getId());
             stmt.setString(2, user.getPassword());
             stmt.setString(3, user.getName());
             stmt.executeUpdate();
-
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
@@ -230,17 +292,15 @@ public class Dao extends DriverAccessor {
 
     public void updateUser(User user) {
         Connection connection = this.createConnection();
-
         try {
             PreparedStatement stmt =
-                    connection.prepareStatement(
-                            "UPDATE user SET password = ?, name = ? WHERE id = ?"
-                    );
+                connection.prepareStatement(
+                    "UPDATE user SET password = ?, name = ? WHERE id = ?"
+                );
             stmt.setString(1, user.getPassword());
             stmt.setString(2, user.getName());
             stmt.setString(3, user.getId());
             stmt.executeUpdate();
-
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
@@ -248,44 +308,40 @@ public class Dao extends DriverAccessor {
         }
     }
 
-    // --- 7. 演習用データ ---
+    // =====================================================
+    // 10. 演習用データ
+    // =====================================================
     public List<MyData> getMyDataList() {
         Connection connection = this.createConnection();
         List<MyData> list = new ArrayList<>();
-
         try {
             ResultSet rs =
-                    connection.prepareStatement(
-                            "SELECT * FROM my_data ORDER BY id DESC"
-                    ).executeQuery();
-
+                connection.prepareStatement(
+                    "SELECT * FROM my_data ORDER BY id DESC"
+                ).executeQuery();
             while (rs.next()) {
                 list.add(new MyData(
                         rs.getInt("id"),
                         rs.getString("data")
                 ));
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
             this.closeConnection(connection);
         }
-
         return list;
     }
 
     public void insertMyData(String data) {
         Connection connection = this.createConnection();
-
         try {
             PreparedStatement stmt =
-                    connection.prepareStatement(
-                            "INSERT INTO my_data (data) VALUES (?)"
-                    );
+                connection.prepareStatement(
+                    "INSERT INTO my_data (data) VALUES (?)"
+                );
             stmt.setString(1, data);
             stmt.executeUpdate();
-
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
