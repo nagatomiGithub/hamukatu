@@ -1,4 +1,5 @@
 package servlet;
+
 import java.io.IOException;
 
 import javax.servlet.ServletException;
@@ -12,18 +13,39 @@ import dao.Dao;
 
 @WebServlet("/LoginServlet")
 public class LoginServlet extends HttpServlet {
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+    // GETで来た場合はログイン画面へ戻す
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+
+        System.out.println("=== LoginServlet doGet called ===");
+        resp.sendRedirect(req.getContextPath() + "/LoginPageServlet");
+    }
+
+    // ログイン処理本体
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+
+        System.out.println("=== LoginServlet doPost called ===");
+
         req.setCharacterEncoding("UTF-8");
         String id = req.getParameter("id");
         String pw = req.getParameter("password");
+
+        System.out.println("id=" + id);
+        System.out.println("pw=" + pw);
+
         User user = new Dao().getUserById(id);
 
         if (user != null && user.getPassword().equals(pw)) {
+            // ログイン成功
             req.getSession().setAttribute("userId", id);
-            // 投稿ページへ移動
-            req.getRequestDispatcher("./EntryArticlePageServlet").forward(req, resp);
+            resp.sendRedirect(req.getContextPath() + "/ArticleListServlet");
         } else {
-            req.getRequestDispatcher("./WEB-INF/jsp/login.jsp").forward(req, resp);
+            // ログイン失敗
+            resp.sendRedirect(req.getContextPath() + "/LoginPageServlet");
         }
     }
 }

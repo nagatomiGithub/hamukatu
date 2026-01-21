@@ -1,4 +1,5 @@
 package servlet;
+
 import java.io.IOException;
 
 import javax.servlet.ServletException;
@@ -7,16 +8,29 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import dao.Dao; // インポート追加
+import dao.Dao;
 
 @WebServlet("/FavoriteServlet")
 public class FavoriteServlet extends HttpServlet {
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+
+        // ログイン中ユーザー取得
         String userId = (String) req.getSession().getAttribute("userId");
         String idStr = req.getParameter("id");
+
         if (userId != null && idStr != null) {
-            new Dao().addFavorite(Integer.parseInt(idStr), userId);
+            try {
+                int articleId = Integer.parseInt(idStr);
+                new Dao().addFavorite(articleId, userId);
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+            }
         }
-        resp.sendRedirect("./ArticleListServlet");
+
+        // 記事一覧へ戻る（contextPath付き）
+        resp.sendRedirect(req.getContextPath() + "/ArticleListServlet");
     }
 }
