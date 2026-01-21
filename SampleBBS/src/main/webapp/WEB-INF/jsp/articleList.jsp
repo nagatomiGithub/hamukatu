@@ -4,7 +4,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>PC掲示板ポータル</title>
+    <title>hamukatu Connect</title>
     <style>
         body { background-color: #f0f2f5; font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; color: #1c1e21; }
         .container { display: flex; max-width: 1100px; margin: 0 auto; padding: 20px; gap: 20px; }
@@ -37,7 +37,7 @@
     
     <div class="main-content">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 style="margin:0;">掲示板フィード</h2>
+            <h2 style="margin:0;">hamukatu Connect</h2>
             <form action="./ArticleListServlet" method="get">
                 <input type="text" name="searchKeyword" placeholder="検索..." style="padding: 8px; border-radius: 20px; border: 1px solid #ccc; width: 200px;">
                 <button type="submit" class="btn" style="background:#ddd;">検索</button>

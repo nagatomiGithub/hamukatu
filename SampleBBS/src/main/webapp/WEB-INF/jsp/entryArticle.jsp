@@ -4,7 +4,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Entry article</title>
+<title>hamukatu Connect</title>
 </head>
 <body>
 <label>記事登録</label>

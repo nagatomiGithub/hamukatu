@@ -15,7 +15,7 @@
 </head>
 <body>
     <div class="card">
-        <h1>掲示板ポータル</h1>
+        <h1>hamukatu Connect</h1>
         <form action="./LoginServlet" method="post">
             <input type="text" name="id" placeholder="ユーザーID" required autofocus>
             <input type="password" name="password" placeholder="パスワード" required>
