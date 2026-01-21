@@ -15,7 +15,7 @@
         // requestからuserを取得
         User user = (User)request.getAttribute("user");
         
-        // userがnullの場合の安全策
+        
         if (user != null) {
     %>
         <form action="./UpdateUserServletAns" method="post">

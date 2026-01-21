@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <title>記事投稿とログイン</title>
     <style>
-        /* スタイルは省略せず残します */
         body {
             font-family: Arial;
             margin: 40px;

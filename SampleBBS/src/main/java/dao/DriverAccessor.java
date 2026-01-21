@@ -10,7 +10,6 @@ import java.sql.SQLException;
 public class DriverAccessor {
 
 	//データベースアクセスのための諸情報
-	//localhost:3306/samplebbsでDBがアクセスを受け付けていることを想定した設定．samplebbsはデータベース名.その後の多数の設定は決まり文句．
 	private final static String DRIVER_URL="jdbc:mysql://localhost:3306/samplebbs?characterEncoding=utf8&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=GMT%2B9:00&rewriteBatchedStatements=true";
 	private final static String DRIVER_NAME="com.mysql.cj.jdbc.Driver"; //JDBCドライバのクラスを指定．このために，WEB-INF/lib/mysql-conector-java-8.0.19.jarが必要．
 	private final static String USER_NAME="samplebbs"; //mysqlのユーザ名
@@ -34,7 +33,6 @@ public class DriverAccessor {
 	}
 
 	//コネクションを閉じる
-	//コネクションを増やし続けるとパフォーマンスが落ちるので，コネクションを使い終わったら閉じる
 	public void closeConnection(Connection con){
 		try{
 			con.close();
