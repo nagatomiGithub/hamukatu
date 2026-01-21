@@ -15,16 +15,17 @@ public class Article implements Serializable {
 
     public Article() {}
 
-    // 新規投稿用（絶対に必要）
+    // ★ 新規投稿用（必須・安全）
     public Article(String title, String body, String editorId) {
         this.title = title;
         this.body = body;
         this.editorId = editorId;
         this.favCount = 0;
         this.dislikeCount = 0;
+        this.entryDatetime = null;
     }
 
-    // 一覧表示用（SELECT用）
+    // ★ 一覧表示用（SELECT用）
     public Article(int id, String title, String body,
                    String editorId, int favCount,
                    int dislikeCount, Timestamp entryDatetime) {
