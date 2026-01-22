@@ -6,33 +6,30 @@
     <meta charset="UTF-8">
     <title>hamukatu Connect - フィード</title>
     <style>
-        body { background-color: #f0f2f5; font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', sans-serif; margin: 0; color: #1c1e21; }
+        body { background-color: #f0f2f5; font-family: sans-serif; margin: 0; color: #1c1e21; }
         .container { display: flex; max-width: 1100px; margin: 0 auto; padding: 20px; gap: 20px; }
-        
-        /* メインエリア */
         .main-content { flex: 3; }
-        .card { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #ddd; transition: 0.2s; }
-        .card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .card { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #ddd; }
         
-        /* 投稿画像スタイル */
-        .post-image { 
-            width: 100%; 
-            max-height: 500px; 
-            object-fit: contain; 
-            border-radius: 8px; 
-            margin: 15px 0; 
-            background-color: #f8f9fa;
-            border: 1px solid #eee;
+        /* 🌟 おみくじ結果のバッジスタイル */
+        .omikuji-badge {
+            display: inline-block;
+            background: #fff4e5;
+            color: #ff9800;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            border: 1px solid #ffe0b2;
         }
 
-        /* サイドバー */
-        .sidebar { flex: 1; position: sticky; top: 20px; height: fit-content; }
-        .side-card { background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-
-        /* パーツ */
+        .post-image { width: 100%; max-height: 500px; object-fit: contain; border-radius: 8px; margin: 15px 0; background: #f8f9fa; border: 1px solid #eee; }
         .hashtag { color: #1da1f2; text-decoration: none; font-weight: bold; }
         .btn { border: none; border-radius: 6px; padding: 10px 15px; cursor: pointer; font-weight: bold; text-decoration: none; display: inline-block; transition: 0.2s; }
         .btn-post { background: #007bff; color: white; width: 100%; text-align: center; box-sizing: border-box; display: block; margin-bottom: 20px; }
+        .sidebar { flex: 1; position: sticky; top: 20px; height: fit-content; }
+        .side-card { background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .nav-link { display: block; padding: 10px; margin: 5px 0; border-radius: 6px; text-decoration: none; color: #333; background: #f8f9fa; }
         .active { background: #ff9800 !important; color: white !important; }
         .comment-box { background: #f8f9fa; border-radius: 8px; padding: 12px; margin-top: 15px; }
@@ -57,9 +54,13 @@
             </form>
         </div>
 
-        <% if (list != null && !list.isEmpty()) { 
+        <% if (list != null) { 
             for (Article a : list) { %>
             <div class="card">
+                <% if (a.getOmikujiResult() != null && !a.getOmikujiResult().isEmpty()) { %>
+                    <div class="omikuji-badge">おみくじ結果：<%= a.getOmikujiResult() %></div>
+                <% } %>
+
                 <div style="display: flex; justify-content: space-between;">
                     <h3 style="margin:0; color:#0056b3;"><%= a.getTitle() %></h3>
                     <% if (loginUser != null && loginUser.equals(a.getEditorId())) { %>
@@ -67,7 +68,7 @@
                     <% } %>
                 </div>
 
-                <p style="white-space: pre-wrap; margin-top:15px;"><%
+                <p style="white-space: pre-wrap; margin-top:10px;"><%
                     String body = a.getBody();
                     if (body != null) {
                         out.print(body.replaceAll("(#[\\w\\u3041-\\u309F\\u30A1-\\u30FC\\u4E00-\\u9FFF]+)", 
@@ -85,25 +86,40 @@
                     👤 <%= a.getEditorId() %> | 📅 <%= sdf.format(a.getEntryDatetime()) %>
                 </div>
 
-                <div style="border-top: 1px solid #eee; padding-top: 10px; display: flex; gap: 15px;">
-                    <span style="font-weight: bold; color: #1877f2;">👍 <%= a.getFavCount() %></span>
-                    <% if (loginUser != null) { %>
-                        <form action="./FavoriteServlet" method="post" style="display:inline;"><input type="hidden" name="id" value="<%= a.getId() %>"><button class="btn" style="background:#e7f3ff; color:#1877f2;">いいね！</button></form>
-                    <% } %>
+                <div style="border-top: 1px solid #eee; padding-top: 10px; display: flex; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <span style="font-weight: bold; color: #1877f2;">👍 <%= a.getFavCount() %></span>
+                        <% if (loginUser != null) { %>
+                            <form action="./FavoriteServlet" method="post" style="display:inline;"><input type="hidden" name="id" value="<%= a.getId() %>"><button class="btn" style="background:#e7f3ff; color:#1877f2;">いいね！</button></form>
+                        <% } %>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <span style="font-weight: bold; color: #dc3545;">👎 <%= a.getDislikeCount() %></span>
+                        <% if (loginUser != null) { %>
+                            <form action="./DislikeServlet" method="post" style="display:inline;"><input type="hidden" name="id" value="<%= a.getId() %>"><button class="btn" style="background:#fdeaea; color:#dc3545;">低評価</button></form>
+                        <% } %>
+                    </div>
                 </div>
 
                 <div class="comment-box">
                     <% List<Comment> comments = dao.getCommentsByArticleId(a.getId()); %>
                     <strong>💬 コメント (<%= comments.size() %>件)</strong>
                     <% for (Comment c : comments) { %>
-                        <div style="padding: 5px 0; border-bottom: 1px dotted #ccc; font-size: 0.9em;">
-                            <%= c.getBody() %> <small style="color:gray;">- <%= c.getUserId() %></small>
+                        <div style="padding: 5px 0; border-bottom: 1px dotted #ccc; font-size: 0.9em; display: flex; justify-content: space-between;">
+                            <span><%= c.getBody() %> <small style="color:gray;">- <%= c.getUserId() %></small></span>
+                            <% if (loginUser != null && loginUser.equals(c.getUserId())) { %>
+                                <form action="./DeleteCommentServlet" method="post" style="display:inline;">
+                                    <input type="hidden" name="commentId" value="<%= c.getId() %>">
+                                    <button type="submit" style="color:#999; border:none; background:none; cursor:pointer; font-size:0.8em;">削除</button>
+                                </form>
+                            <% } %>
                         </div>
                     <% } %>
                     <% if (loginUser != null) { %>
                         <form action="./CommentServlet" method="post" style="margin-top:10px; display:flex; gap:5px;">
                             <input type="hidden" name="articleId" value="<%= a.getId() %>">
-                            <input type="text" name="commentBody" placeholder="コメント..." style="flex:1; padding:5px; border-radius:4px; border:1px solid #ddd;" required>
+                            <input type="text" name="commentBody" placeholder="コメント..." style="flex:1; padding:5px; border:1px solid #ddd;" required>
                             <button class="btn" style="background:#007bff; color:white; padding:5px 10px;">送信</button>
                         </form>
                     <% } %>
@@ -130,9 +146,6 @@
             <h4 style="margin-top:0;">表示順</h4>
             <a href="./ArticleListServlet" class="nav-link <%= !isTrend ? "active" : "" %>">🕙 新着順</a>
             <a href="./ArticleListServlet?trend=true" class="nav-link <%= isTrend ? "active" : "" %>">🔥 トレンド</a>
-            <p style="font-size: 0.7em; color: gray; margin-top: 10px;">
-                ※トレンドは評価＋コメ数＋タグ数＋画像有無で集計
-            </p>
         </div>
     </div>
 </div>
