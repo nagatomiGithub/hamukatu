@@ -11,8 +11,9 @@
             display: flex; 
             justify-content: center; 
             align-items: center; 
-            height: 100vh; 
+            min-height: 100vh; 
             margin: 0; 
+            padding: 20px;
         }
         .post-card { 
             background: white; 
@@ -48,9 +49,9 @@
             box-shadow: 0 0 0 3px rgba(0,123,255,0.1); 
         }
         
-        textarea { height: 200px; resize: none; font-family: inherit; line-height: 1.5; }
+        textarea { height: 150px; resize: none; font-family: inherit; line-height: 1.5; }
         
-        /* 写真アップロード部分のスタイル */
+        /* 写真アップロード部分 */
         .file-input-wrapper {
             background: #f8f9fa;
             border: 2px dashed #ddd;
@@ -62,7 +63,24 @@
         }
         .file-input-wrapper:hover { border-color: #007bff; background: #f0f7ff; }
         
-        .btn-group { display: flex; gap: 15px; margin-top: 30px; }
+        /* おみくじ表示エリア */
+        .omikuji-section {
+            background: #fffaf0;
+            border: 2px solid #ff9800;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        #omikujiDisplay {
+            font-weight: bold;
+            color: #ff9800;
+            font-size: 1.1em;
+            margin-top: 10px;
+            min-height: 1.2em;
+        }
+
+        .btn-group { display: flex; gap: 15px; margin-top: 20px; }
         .btn { flex: 1; padding: 15px; border: none; border-radius: 8px; font-size: 17px; font-weight: bold; cursor: pointer; transition: 0.3s; text-align: center; text-decoration: none; }
         .btn-submit { background: #007bff; color: white; }
         .btn-submit:hover { background: #0056b3; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,123,255,0.3); }
@@ -71,34 +89,16 @@
 
         .hint { font-size: 12px; color: #888; margin-top: 8px; display: flex; align-items: center; gap: 5px; }
     </style>
-    
-    <script>
-        // ハムカツおみくじロジック
-        function drawOmikuji() {
-        	const results = [
-        		  "🌈【超大吉】10万いいね級！？通知が鳴り止まらない伝説バズ確定！",
-        		  "✨【大吉】おすすめに乗る！いいね爆増＆コメント祭りで伸びる！",
-        		  "🎉【中吉】じわじわ伸びる！深夜〜翌朝にかけてバズり始める予感！",
-        		  "😊【吉】安定の反応！いいねもコメントも程よくついて平和に伸びる！",
-        		  "🍀【小吉】伸びは控えめだけど刺さる人には刺さる！固定ファン増える！",
-        		  "🌧️【凶】投稿タイミングが微妙かも…伸びないけど消さなきゃOK！",
-        		  "💀【大凶】圧倒的不遇！誰にも見られない虚無の海に沈む可能性…！",
-        		  "🌀【超大凶】バズるどころか事故る！？誤解されやすいので投稿文見直せ！"
-        		];
-            const res = results[Math.floor(Math.random() * results.length)];
-            
-            // おみくじ結果をアラートで表示
-            alert("🎊 ハムカツおみくじ結果 🎊\n\n" + res + "\n\nこのまま投稿を公開します！");
-            return true; // フォーム送信を実行
-        }
-    </script>
 </head>
 <body>
     <div class="post-card">
         <h1>hamukatu Connect</h1>
         <p class="subtitle">おみくじを引いて、今の気持ちを共有しましょう</p>
         
-        <form action="./EntryArticleServlet" method="post" enctype="multipart/form-data" onsubmit="return drawOmikuji()">
+        <form action="./EntryArticleServlet" method="post" enctype="multipart/form-data" onsubmit="return checkOmikuji()">
+            
+            <input type="hidden" name="omikujiResult" id="omikujiResultInput">
+
             <div class="form-group">
                 <label for="title">タイトル</label>
                 <input type="text" id="title" name="title" placeholder="タイトルを入力..." required autofocus>
@@ -117,15 +117,61 @@
                     <input type="file" id="imageFile" name="imageFile" accept="image/*" style="display:none" onchange="updateFileName(this)">
                 </div>
             </div>
+
+            <div class="omikuji-section">
+                <label>🐷 ハムカツおみくじ</label>
+                <div id="omikujiDisplay">運勢を占おう！</div>
+                <button type="button" onclick="drawOmikuji()" id="drawBtn" style="margin-top:10px; background:#ff9800; color:white; border:none; padding:8px 20px; border-radius:15px; cursor:pointer; font-weight:bold; transition: 0.3s;">
+                    おみくじを引く
+                </button>
+            </div>
             
             <div class="btn-group">
                 <a href="./ArticleListServlet" class="btn btn-cancel">キャンセル</a>
-                <button type="submit" class="btn btn-submit">おみくじを引いて投稿</button>
+                <button type="submit" class="btn btn-submit">投稿を公開する</button>
             </div>
         </form>
     </div>
 
     <script>
+        function drawOmikuji() {
+            const results = [
+                "🌈【超大吉】10万いいね級！？通知が鳴り止まらない伝説バズ確定！",
+                "✨【大吉】おすすめに乗る！いいね爆増＆コメント祭りで伸びる！",
+                "🎉【中吉】じわじわ伸びる！深夜〜翌朝にかけてバズり始める予感！",
+                "😊【吉】安定の反応！いいねもコメントも程よくついて平和に伸びる！",
+                "🍀【小吉】伸びは控えめだけど刺さる人には刺さる！固定ファン増える！",
+                "🌧️【凶】投稿タイミングが微妙かも…伸びないけど消さなきゃOK！",
+                "💀【大凶】圧倒的不遇！誰にも見られない虚無の海に沈む可能性…！",
+                "🌀【超大凶】バズるどころか事故る！？誤解されやすいので投稿文見直せ！",
+                "🐷【ハムカツ吉】ラッキーフードはハムカツです！"
+            ];
+            
+            const res = results[Math.floor(Math.random() * results.length)];
+            
+            // 画面表示と隠しフィールドへのセット
+            document.getElementById("omikujiDisplay").innerText = res;
+            document.getElementById("omikujiResultInput").value = res;
+            
+            // 🌟 リセマラ防止：ボタンを無効化
+            const btn = document.getElementById("drawBtn");
+            btn.disabled = true;
+            btn.style.background = "#ccc";
+            btn.style.cursor = "not-allowed";
+            btn.innerText = "運勢確定！";
+
+            alert("🎊 ハムカツおみくじ結果 🎊\n\n" + res);
+        }
+
+        function checkOmikuji() {
+            const result = document.getElementById("omikujiResultInput").value;
+            if (!result) {
+                alert("投稿前におみくじを引いてください！🐷");
+                return false;
+            }
+            return true;
+        }
+
         function updateFileName(input) {
             const label = document.getElementById('file-label');
             if (input.files.length > 0) {
