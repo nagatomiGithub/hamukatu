@@ -51,7 +51,7 @@
         
         textarea { height: 150px; resize: none; font-family: inherit; line-height: 1.5; }
         
-        /* 写真アップロード部分 */
+        /* 写真アップロードの部分 */
         .file-input-wrapper {
             background: #f8f9fa;
             border: 2px dashed #ddd;
